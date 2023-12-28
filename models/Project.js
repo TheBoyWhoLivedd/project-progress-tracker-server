@@ -5,7 +5,6 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  projectDescription: String,
   currentPhase: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Phase",
@@ -16,7 +15,13 @@ const projectSchema = new mongoose.Schema({
       ref: "ProjectPhaseDetail",
     },
   ],
-  teamLeads: [
+  team: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  teamLead: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -30,6 +35,7 @@ const projectSchema = new mongoose.Schema({
   startDate: Date,
   estimatedEndDate: Date,
   actualEndDate: Date,
+  projectDescription: String,
 });
 
 module.exports = mongoose.model("Project", projectSchema);

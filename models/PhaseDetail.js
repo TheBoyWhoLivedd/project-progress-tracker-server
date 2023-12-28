@@ -9,10 +9,6 @@ const projectPhaseDetailSchema = new mongoose.Schema({
   phaseStartDate: Date,
   phaseEstimatedEndDate: Date,
   phaseActualEndDate: Date,
-  phaseLead: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
   phaseCompletionRate: Number,
 });
 
