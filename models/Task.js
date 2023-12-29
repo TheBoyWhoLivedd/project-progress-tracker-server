@@ -21,14 +21,25 @@ const taskSchema = new mongoose.Schema({
   taskWeight: Number,
   status: {
     type: String,
-    enum: ["Pending", "In Progress", "Completed"],
-    default: "Pending",
+    enum: ["Backlog", "To Do", "In Progress", "Done", "Cancelled"],
+    default: "To Do",
   },
   workDone: {
-    type: String, // Rich text format content
+    type: String,
     default: "",
   },
-  attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
+  attachments: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
   startDate: Date,
   dueDate: Date,
   completionDate: Date,
