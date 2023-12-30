@@ -14,5 +14,8 @@ router
   .route("/:id")
   .patch(projectsController.updateProject)
   .delete(projectsController.deleteProject);
+router
+  .route("/:id/update-phase")
+  .patch(projectsController.updateProjectPhase)
   
 module.exports = router;

@@ -170,6 +170,52 @@ const updateProject = async (req, res) => {
   });
 };
 
+// @desc Update a project's phase
+// @route PATCH /projects/:id/phase
+// @access Private
+
+const updateProjectPhase = async (req, res) => {
+  const { id } = req.params;
+  const { currentPhase, phaseStartDate, phaseEstimatedEndDate } = req.body;
+
+  // Validate dates
+  if (new Date(phaseEstimatedEndDate) < new Date(phaseStartDate)) {
+    return res.status(400).json({
+      message: "Phase estimated end date can't be before the phase start date.",
+    });
+  }
+
+  // Find the project
+  const project = await Project.findById(id);
+
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
+
+  // Create new phase detail
+  const newPhaseDetail = await PhaseDetail.create({
+    phase: currentPhase,
+    phaseStartDate,
+    phaseEstimatedEndDate,
+  });
+
+  // Update project's phase history and current phase
+  project.phasesHistory.push(newPhaseDetail._id);
+  project.currentPhase = currentPhase;
+
+  // Save the updated project
+  const updatedProject = await project.save();
+
+  if (!updatedProject) {
+    return res.status(500).json({ message: "Error updating project phase" });
+  }
+
+  res.json({
+    message: `Project phase updated successfully`,
+    project: updatedProject,
+  });
+};
+
 // Delete a project
 const deleteProject = async (req, res) => {
   const { id } = req.params;
@@ -189,5 +235,6 @@ module.exports = {
   getAllProjects,
   createNewProject,
   updateProject,
+  updateProjectPhase,
   deleteProject,
 };
