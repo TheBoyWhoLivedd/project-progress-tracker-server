@@ -36,6 +36,10 @@ const projectSchema = new mongoose.Schema({
   estimatedEndDate: Date,
   actualEndDate: Date,
   projectDescription: String,
+  projectCompletionRate: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model("Project", projectSchema);

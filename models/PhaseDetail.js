@@ -9,7 +9,10 @@ const projectPhaseDetailSchema = new mongoose.Schema({
   phaseStartDate: Date,
   phaseEstimatedEndDate: Date,
   phaseActualEndDate: Date,
-  phaseCompletionRate: Number,
+  phaseCompletionRate: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model("ProjectPhaseDetail", projectPhaseDetailSchema);

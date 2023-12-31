@@ -6,7 +6,8 @@ const Project = require("../models/Project");
 // @access Private
 const getAllProjects = async (req, res) => {
   // Get all projects from MongoDB
-  const projects = await Project.find().lean();
+  const projects = await Project.find().populate("phasesHistory").lean();
+  // console.log(projects);
 
   // If no projects
   if (!projects?.length) {

@@ -1,5 +1,68 @@
 const Project = require("../models/Project");
 const Task = require("../models/Task");
+const PhaseDetail = require("../models/PhaseDetail");
+const { default: mongoose } = require("mongoose");
+const Phase = require("../models/Phase");
+
+async function calculatePhaseCompletionRate(phaseId) {
+  // Fetch all tasks associated with the phase
+  const tasks = await Task.find({ associatedPhase: phaseId }).lean();
+  // console.log("tasks", tasks);
+  // Sum weights of completed tasks and total weights
+  let completedWeight = 0,
+    totalWeight = 0;
+  tasks.forEach((task) => {
+    totalWeight += task.taskWeight;
+    if (task.status === "Done") {
+      completedWeight += task.taskWeight;
+    }
+  });
+
+  console.log("totalWeight", totalWeight);
+  console.log("completedWeight", completedWeight);
+
+  // Calculate completion rate (ensure no division by zero)
+  return totalWeight > 0 ? (completedWeight / totalWeight) * 100 : 0;
+}
+
+async function updatePhaseCompletionInProject(projectId, phaseId) {
+  // console.log("phaseId", phaseId);
+  // console.log("projectId", projectId);
+  const completionRate = await calculatePhaseCompletionRate(phaseId);
+  // console.log("completion Rate", completionRate);
+
+  const updatedPhaseDetail = await PhaseDetail.updateMany(
+    { phase: phaseId },
+    { $set: { phaseCompletionRate: completionRate } },
+    { new: true }
+  );
+
+  if (!updatedPhaseDetail) {
+    throw new Error("PhaseDetail not found for the given phaseId");
+  }
+}
+
+async function updateProjectCompletionRate(projectId) {
+  const project = await Project.findById(projectId).populate("phasesHistory");
+
+  const phases = await Phase.find().lean();
+  const phasesCount = phases.length || 0;
+
+  if (phasesCount === 0) return;
+
+  let totalCompletion = 0;
+  const encounteredPhases = new Set();
+
+  for (const phaseDetail of project.phasesHistory) {
+    if (!encounteredPhases.has(phaseDetail.phase.toString())) {
+      totalCompletion += phaseDetail.phaseCompletionRate;
+      encounteredPhases.add(phaseDetail.phase.toString());
+    }
+  }
+
+  const projectCompletionRate = totalCompletion / phasesCount;
+  await Project.findByIdAndUpdate(projectId, { projectCompletionRate });
+}
 
 // @desc Get all tasks
 // @route GET /tasks
@@ -86,6 +149,9 @@ const createNewTask = async (req, res) => {
     dueDate,
   });
 
+  await updatePhaseCompletionInProject(projectId, associatedPhase);
+  await updateProjectCompletionRate(projectId);
+
   // Assuming you want to return the created task as well
   return res
     .status(201)
@@ -162,6 +228,13 @@ const updateTask = async (req, res) => {
   // Save the updated task
   const updatedTask = await task.save();
 
+  await updatePhaseCompletionInProject(
+    task.associatedProject,
+    new mongoose.Types.ObjectId(associatedPhase)
+  );
+
+  await updateProjectCompletionRate(task.associatedProject);
+
   // Return the updated task
   return res.json({
     message: `Task '${updatedTask.taskName}' updated`,
@@ -178,6 +251,13 @@ const deleteTask = async (req, res) => {
   if (!deletedTask) {
     return res.status(404).json({ message: "Task not found" });
   }
+
+  await updatePhaseCompletionInProject(
+    deletedTask.associatedProject,
+    new mongoose.Types.ObjectId(associatedPhase)
+  );
+
+  await updateProjectCompletionRate(deletedTask.associatedProject);
 
   res.json({
     message: `Task '${deletedTask.taskName}' with ID ${deletedTask._id} deleted`,
