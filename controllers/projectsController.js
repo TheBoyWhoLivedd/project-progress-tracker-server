@@ -187,17 +187,27 @@ const updateProjectPhase = async (req, res) => {
   }
 
   // Find the project
-  const project = await Project.findById(id);
+  const project = await Project.findById(id).populate("phasesHistory");
 
   if (!project) {
     return res.status(404).json({ message: "Project not found" });
   }
 
-  // Create new phase detail
+  // Check if the phase was previously encountered
+  let previousCompletionRate = 0;
+  for (const detail of project.phasesHistory) {
+    if (String(detail.phase) === currentPhase) {
+      previousCompletionRate = detail.phaseCompletionRate;
+      break;
+    }
+  }
+
+  // Create new phase detail with the previous completion rate, if any
   const newPhaseDetail = await PhaseDetail.create({
     phase: currentPhase,
     phaseStartDate,
     phaseEstimatedEndDate,
+    phaseCompletionRate: previousCompletionRate,
   });
 
   // Update project's phase history and current phase
