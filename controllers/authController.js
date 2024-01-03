@@ -25,7 +25,8 @@ const login = async (req, res) => {
   const accessToken = jwt.sign(
     {
       UserInfo: {
-        username: foundUser.name,
+        userId: foundUser._id,
+        userName: foundUser.name,
         isAdmin: foundUser.hasAdminRights,
       },
     },
@@ -34,7 +35,7 @@ const login = async (req, res) => {
   );
 
   const refreshToken = jwt.sign(
-    { username: foundUser.username },
+    { userId: foundUser._id },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: "7d" }
   );
@@ -66,17 +67,18 @@ const refresh = (req, res) => {
     process.env.REFRESH_TOKEN_SECRET,
     async (err, decoded) => {
       if (err) return res.status(403).json({ message: "Forbidden" });
-
+      // console.log(decoded.userId);
       const foundUser = await User.findOne({
-        username: decoded.username,
+        _id: decoded.userId,
       }).exec();
-
+      // console.log("foundUser", foundUser);
       if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
 
       const accessToken = jwt.sign(
         {
           UserInfo: {
-            username: foundUser.name,
+            userId: foundUser._id,
+            userName: foundUser.name,
             isAdmin: foundUser.hasAdminRights,
           },
         },
