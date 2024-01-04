@@ -29,19 +29,33 @@ async function calculatePhaseCompletionRate(projectId, phaseId) {
 }
 
 async function updatePhaseCompletionInProject(projectId, phaseId) {
-  // console.log("phaseId", phaseId);
-  // console.log("projectId", projectId);
   const completionRate = await calculatePhaseCompletionRate(projectId, phaseId);
   console.log("Phase completion Rate", completionRate);
 
+  // Step 1: Find the project by its projectId
+  const project = await Project.findById(projectId);
+
+  if (!project) {
+    throw new Error("Project not found for the given projectId");
+  }
+
+  // Step 2: Extract the phasesHistory
+  const phasesHistoryIds = project.phasesHistory;
+
+  // Step 3: Update only the relevant ProjectPhaseDetail documents
   const updatedPhaseDetail = await PhaseDetail.updateMany(
-    { phase: phaseId },
+    {
+      _id: { $in: phasesHistoryIds },
+      phase: phaseId,
+    },
     { $set: { phaseCompletionRate: completionRate } },
     { new: true }
   );
 
   if (!updatedPhaseDetail) {
-    throw new Error("PhaseDetail not found for the given phaseId");
+    throw new Error(
+      "PhaseDetail not found for the given phaseId in the project's phasesHistory"
+    );
   }
 }
 
