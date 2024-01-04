@@ -4,9 +4,12 @@ const PhaseDetail = require("../models/PhaseDetail");
 const { default: mongoose } = require("mongoose");
 const Phase = require("../models/Phase");
 
-async function calculatePhaseCompletionRate(phaseId) {
+async function calculatePhaseCompletionRate(projectId, phaseId) {
   // Fetch all tasks associated with the phase
-  const tasks = await Task.find({ associatedPhase: phaseId }).lean();
+  const tasks = await Task.find({
+    associatedProject: projectId,
+    associatedPhase: phaseId,
+  }).lean();
   // console.log("tasks", tasks);
   // Sum weights of completed tasks and total weights
   let completedWeight = 0,
@@ -28,8 +31,8 @@ async function calculatePhaseCompletionRate(phaseId) {
 async function updatePhaseCompletionInProject(projectId, phaseId) {
   // console.log("phaseId", phaseId);
   // console.log("projectId", projectId);
-  const completionRate = await calculatePhaseCompletionRate(phaseId);
-  // console.log("completion Rate", completionRate);
+  const completionRate = await calculatePhaseCompletionRate(projectId, phaseId);
+  console.log("Phase completion Rate", completionRate);
 
   const updatedPhaseDetail = await PhaseDetail.updateMany(
     { phase: phaseId },
@@ -254,8 +257,10 @@ const deleteTask = async (req, res) => {
 
   await updatePhaseCompletionInProject(
     deletedTask.associatedProject,
-    new mongoose.Types.ObjectId(associatedPhase)
+    new mongoose.Types.ObjectId(deletedTask.associatedPhase)
   );
+
+  console.log("deletedTask", deletedTask.associatedProject);
 
   await updateProjectCompletionRate(deletedTask.associatedProject);
 
