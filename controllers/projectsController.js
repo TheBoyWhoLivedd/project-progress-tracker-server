@@ -60,6 +60,7 @@ const createNewProject = async (req, res) => {
   // First, create a ProjectPhaseDetail document
   const newPhaseDetail = await PhaseDetail.create({
     phase: currentPhase,
+    phaseLead: teamLead,
     phaseStartDate,
     phaseEstimatedEndDate,
   });
@@ -177,7 +178,8 @@ const updateProject = async (req, res) => {
 
 const updateProjectPhase = async (req, res) => {
   const { id } = req.params;
-  const { currentPhase, phaseStartDate, phaseEstimatedEndDate } = req.body;
+  const { currentPhase, phaseStartDate, phaseEstimatedEndDate, phaseLead } =
+    req.body;
 
   // Validate dates
   if (new Date(phaseEstimatedEndDate) < new Date(phaseStartDate)) {
@@ -195,6 +197,7 @@ const updateProjectPhase = async (req, res) => {
 
   // Check if the phase was previously encountered
   let previousCompletionRate = 0;
+
   for (const detail of project.phasesHistory) {
     if (String(detail.phase) === currentPhase) {
       previousCompletionRate = detail.phaseCompletionRate;
@@ -205,10 +208,24 @@ const updateProjectPhase = async (req, res) => {
   // Create new phase detail with the previous completion rate, if any
   const newPhaseDetail = await PhaseDetail.create({
     phase: currentPhase,
+    phaseLead,
     phaseStartDate,
     phaseEstimatedEndDate,
     phaseCompletionRate: previousCompletionRate,
   });
+
+  // Existing team leads
+  const existingTeamLeads = new Set(
+    project.teamLead.map((lead) => lead.toString())
+  );
+
+  // Add the new phase leads to the project's team leads if they don't already exist
+  phaseLead.forEach((lead) => {
+    existingTeamLeads.add(lead);
+  });
+
+  // Update the project's teamLead array
+  project.teamLead = Array.from(existingTeamLeads);
 
   // Update project's phase history and current phase
   project.phasesHistory.push(newPhaseDetail._id);

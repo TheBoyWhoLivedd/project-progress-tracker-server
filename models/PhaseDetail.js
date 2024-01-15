@@ -6,6 +6,12 @@ const projectPhaseDetailSchema = new mongoose.Schema({
     ref: "Phase",
     required: true,
   },
+  phaseLead: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   phaseStartDate: Date,
   phaseEstimatedEndDate: Date,
   phaseActualEndDate: Date,
