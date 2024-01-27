@@ -5,6 +5,8 @@ const verifyJWT = require("../middleware/verifyJWT");
 
 router.use(verifyJWT);
 
+router.route("/").get(tasksController.getAllTasks);
+
 router
   .route("/:projectId")
   .get(tasksController.getTasksByProjectId)

@@ -135,9 +135,10 @@ const createNewTask = async (req, res) => {
     attachments,
     startDate,
     dueDate,
+    remark,
   } = req.body;
   const projectId = req.params.projectId;
-  console.log("projectId", projectId); // assuming the param name is projectId
+  console.log("projectId", projectId);
 
   // Validate that the dueDate is not before startDate
   if (new Date(startDate) > new Date(dueDate)) {
@@ -152,6 +153,12 @@ const createNewTask = async (req, res) => {
     return res.status(404).json({ message: "Project not found" });
   }
 
+  //edge case for when a user creates a task thats already done
+  let remarksArray = [];
+  if (status === "Done" && remark) {
+    remarksArray.push({ text: remark, createdAt: new Date() });
+  }
+
   // Create and store the new task
   const createdTask = await Task.create({
     taskName,
@@ -164,6 +171,7 @@ const createNewTask = async (req, res) => {
     attachments,
     startDate,
     dueDate,
+    remarks: remarksArray,
   });
 
   await updatePhaseCompletionInProject(projectId, associatedPhase);
@@ -197,6 +205,7 @@ const updateTask = async (req, res) => {
     attachments,
     startDate,
     dueDate,
+    remark,
   } = req.body;
 
   const taskId = req.params.taskId;
@@ -212,6 +221,14 @@ const updateTask = async (req, res) => {
   const task = await Task.findById(taskId);
   if (!task) {
     return res.status(404).json({ message: "Task not found" });
+  }
+
+  // Check for remark updates
+  const latestRemark =
+    task.remarks.length > 0 ? task.remarks[task.remarks.length - 1].text : "";
+
+  if (remark && remark !== latestRemark) {
+    task.remarks.push({ text: remark, createdAt: new Date() });
   }
 
   // Process new and existing attachments
