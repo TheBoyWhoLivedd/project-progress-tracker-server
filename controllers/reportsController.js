@@ -318,6 +318,7 @@ const getOverallReport = async (req, res) => {
     const reportData = await generateReportData();
     // res.json(reportData);
     const excelBuffer = await createExcelReport(reportData);
+    console.log("Excel Buffer",excelBuffer.length)
     // Set the response headers
     res.setHeader(
       "Content-Type",
