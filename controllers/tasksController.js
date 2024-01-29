@@ -5,6 +5,7 @@ const { default: mongoose } = require("mongoose");
 const Phase = require("../models/Phase");
 
 async function calculatePhaseCompletionRate(projectId, phaseId) {
+  console.log("calculatePhaseCompletionRate", phaseId);
   // Fetch all tasks associated with the phase
   const tasks = await Task.find({
     associatedProject: projectId,
@@ -29,6 +30,7 @@ async function calculatePhaseCompletionRate(projectId, phaseId) {
 }
 
 async function updatePhaseCompletionInProject(projectId, phaseId) {
+  console.log("updatePhaseCompletionInProject", phaseId);
   const completionRate = await calculatePhaseCompletionRate(projectId, phaseId);
   console.log("Phase completion Rate", completionRate);
 

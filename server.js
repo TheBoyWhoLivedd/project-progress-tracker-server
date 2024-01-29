@@ -33,6 +33,7 @@ app.use("/phases", require("./routes/phaseRoutes"));
 app.use("/projects", require("./routes/projectRoutes"));
 app.use("/tasks", require("./routes/taskRoutes"));
 app.use("/upload", require("./routes/fileUploadRoutes"));
+app.use("/reports", require("./routes/reportRoute"));
 
 app.all("*", (req, res) => {
   res.status(404);
@@ -51,6 +52,8 @@ mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
+
+// mongoose.set("debug", true);
 
 mongoose.connection.on("error", (err) => {
   console.log(err);
