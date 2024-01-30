@@ -2,7 +2,6 @@ const Excel = require("exceljs");
 const Project = require("../models/Project");
 const Task = require("../models/Task");
 
-
 async function generateReportData() {
   // Retrieve all projects
   const projects = await Project.find().populate({
@@ -16,7 +15,7 @@ async function generateReportData() {
       {
         path: "phaseLead",
         model: "User",
-        select: "-password", // Exclude password field
+        select: "-password",
       },
     ],
   });
@@ -318,7 +317,7 @@ const getOverallReport = async (req, res) => {
     const reportData = await generateReportData();
     // res.json(reportData);
     const excelBuffer = await createExcelReport(reportData);
-    console.log("Excel Buffer",excelBuffer.length)
+    console.log("Excel Buffer", excelBuffer.length);
     // Set the response headers
     res.setHeader(
       "Content-Type",
